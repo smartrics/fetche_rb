@@ -1,0 +1,2 @@
+A simple client application to go fetch log messages from distributed log files and push them to a central repository
+
