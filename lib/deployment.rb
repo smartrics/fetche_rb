@@ -1,12 +1,11 @@
 require 'json'
 
 class Deployment
-
   def initialize json_string
     p = JSON::Parser.new(json_string)
     @deployment = p.parse
   end
-  
+
   def environments values = {}
     envs = {}
     @deployment.keys.each do | e |
@@ -38,7 +37,7 @@ class Deployment
     loc = localities(values)
     loc.keys.each do | l |
       loc[l].each do | a |
-        a['comp'].each do | c | 
+        a['comp'].each do | c |
           if allow?(values['comp'], c)
             components[c] = [] if components[c].nil?
             components[c] << { 'env' => a['env'], 'loc' => l }
@@ -59,7 +58,7 @@ class Deployment
               if allow?(values['comp'], c)
                 @deployment[e][l][c].each do | i |
                   if allow?(values['host'], i['host'])
-                    hosts[i[:host]] = [] if hosts[i['host']].nil?
+                    hosts[i['host']] = [] if hosts[i['host']].nil?
                     y = i.dup
                     y['env'] = e
                     y['loc'] = l
@@ -76,39 +75,8 @@ class Deployment
     hosts
   end
 
-  def show options
-    if options[:verbose]
-      puts '--- environments'
-      puts environments
-      puts ''
-      puts '--- localities'
-      puts localities
-      puts ''
-      puts '--- components'
-      puts components
-      puts ''
-      puts '--- hosts'
-      puts hosts
-      puts ''
-    else
-      puts '--- environments'
-      puts environments.keys
-      puts ''
-      puts '--- localities'
-      puts localities.keys
-      puts ''
-      puts '--- components'
-      puts components.keys
-      puts ''
-      puts '--- hosts'
-      puts hosts.keys
-      puts ''
-      exit
-    end
-  end
-  
   private
-  
+
   def allow?(data, el)
     data == el || data.nil? || (data.kind_of?(Array) && (data.empty? || !data.find_index(el).nil?))
   end

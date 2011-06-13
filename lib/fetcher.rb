@@ -3,10 +3,8 @@ require File.dirname(__FILE__) + '/opt_parser.rb'
 require File.dirname(__FILE__) + '/deployment.rb'
 
 options = OptParser.parse(ARGV)
-deployment = Deployment.new(options.deployment_json)
-ui = FetcherUi.new(deployment)
+ui = FetcherUi.new(options)
 ui.loop()
-ui.show_selections()
 
 #puts '--- environments'
 #p DEPLOYMENTS.environments

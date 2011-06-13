@@ -5,10 +5,6 @@ require 'ostruct'
 require 'pp'
 
 class OptParser
-
-  def self.get_sanitised_keys map
-    map.keys.uniq.collect { | k | k.to_s }
-  end
   
   def self.parse(args)
     # The options specified on the command line will be collected in *options*.
@@ -32,18 +28,9 @@ class OptParser
       opts.separator ""
       opts.separator "Specific options:"
 
-      opts.on("-f", "--deployment-file FILE", Array,
+      opts.on("-f", "--deployment-file FILE", 
         "The file containing the deployment database. The file is expected to be in JSON format.") do |file|
-          begin
-            puts "Error:"
-            puts " File '#{file}' does not exist!"
-          end unless File.new(file).exists?
-          begin
-            options.deployment_json = File.open(file, 'r') { | f | r.read }
-          rescue
-            puts "Error:"
-            puts " File '#{file}' can not be read! (#{e.message})"
-          end
+          options.deployment_json = file
       end
       opts.on("-e", "--environments [ENVS]", Array,
         "The environments where to perform the search. Entries are comma separated.") do |env|
@@ -62,19 +49,20 @@ class OptParser
           options.environments = env
       end
 
-      opts.on("-d", "--[no-]defaults", "Automatically accepts default values passed via command line arguments. Default is false") do |d|
+      opts.on("-d", "--[no-]defaults", "Automatically accepts default values passed via command line arguments.", "Default is not to accept defaults automatically.") do |d|
         options.accept_defaults = d
       end
 
-      opts.on("-v", "--[no-]verbose", "Run verbosely. Default is false") do |v|
+      opts.on("-v", "--[no-]verbose", "Run verbosely.", "Default is not verbose") do |v|
         options.verbose = v
       end
 
       opts.on("-T", "--time TIME", Time, "Extract logs at given time (plus/minus the time window specified with -w)") do |time|
         options.time = time
+        puts "Time is: '#{time}' of class #{time.class}"
       end
 
-      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds before and after the specified time (see -t) to extend the log extraction.", "Default is 5.") do |n|
+      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds before and after the specified time (see -T) to extend the log extraction.", "Default is 5.") do |n|
          options.delay = n
       end
 
@@ -106,8 +94,40 @@ class OptParser
     end
 
     opts.parse!(args)
+    validate(opts, options)
     options
   end 
 
+  private 
+
+  def self.get_sanitised_keys map
+    map.keys.uniq.collect { | k | k.to_s }
+  end
+
+  def self.validate(opts, options)
+    messages = []
+    if(options.deployment_json.nil?)
+      messages << "You must specify -f option"
+    else
+      begin
+        options.deployment_json = File.open(options.deployment_json) { | f | f.read }
+      rescue => e
+        messages << "File '#{options.deployment_json}' can not be read! (#{e.message})"
+      end
+    end
+    if options.time.nil?
+      messages << "You must specify -T option"
+    end
+
+    if messages.length() > 0
+      puts "Errors:"
+      puts
+      messages.each do |m|
+        puts "***  #{m}"
+      end
+      puts opts
+      exit
+    end
+  end
 end 
 
