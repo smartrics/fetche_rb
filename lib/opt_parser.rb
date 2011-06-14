@@ -16,14 +16,14 @@ class OptParser
     options.hosts = []
     options.accept_defaults = false
     options.time = nil
-    options.timewindow = 5
+    options.timewindow = 60
     options.tokens = []
     options.verbose = false
     options.deployment_json = nil
     options.show = false
 
     opts = OptionParser.new do |opts|
-      opts.banner = "Usage: fetcher.rb [options]"
+      opts.banner = "Usage: fetcher.rb -f FILE -T TIME [options]"
 
       opts.separator ""
       opts.separator "Specific options:"
@@ -31,6 +31,10 @@ class OptParser
       opts.on("-f", "--deployment-file FILE", 
         "The file containing the deployment database. The file is expected to be in JSON format.") do |file|
           options.deployment_json = file
+      end
+      opts.on("-T", "--time TIME", Time, "Extract logs at given time plus/minus 60 seconds (unless -w is specified to override the default)") do |time|
+        options.time = time
+        puts "Time is: '#{time}' of class #{time.class}"
       end
       opts.on("-e", "--environments [ENVS]", Array,
         "The environments where to perform the search. Entries are comma separated.") do |env|
@@ -57,12 +61,7 @@ class OptParser
         options.verbose = v
       end
 
-      opts.on("-T", "--time TIME", Time, "Extract logs at given time (plus/minus the time window specified with -w)") do |time|
-        options.time = time
-        puts "Time is: '#{time}' of class #{time.class}"
-      end
-
-      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds before and after the specified time (see -T) to extend the log extraction.", "Default is 5.") do |n|
+      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds before and after the specified time (see -T) to extend the log extraction.", "Default is 60.") do |n|
          options.delay = n
       end
 
@@ -82,7 +81,7 @@ class OptParser
 
       # No argument, shows at tail.  This will print an options summary.
       # Try it and see!
-      opts.on_tail("-h", "--help", "Show this message") do
+      opts.on_tail("--help", "Show this message") do
         puts opts
         exit
       end
