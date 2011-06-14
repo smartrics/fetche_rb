@@ -6,9 +6,7 @@ class FetcherUi
     @selected_loc = []
     @selected_comp = []
     @selected_hosts = []
-
     build_menu
-
   end
 
   def selected_environments
@@ -33,9 +31,13 @@ class FetcherUi
     @current_menu = 0;
     next_menu = @menus[@current_menu]
     begin
-      while(cont)
-        next_menu = process(next_menu)
-        cont = !next_menu.nil?
+      if(@options.accept_defaults)
+        set_defaults
+      else
+        while(cont)
+          next_menu = process(next_menu)
+          cont = !next_menu.nil?
+        end
       end
       show_selections()
     rescue => e
@@ -100,6 +102,7 @@ class FetcherUi
   
   def process menu
     res = menu.call
+    
     if(res==:quit)
       raise "selected quit"
     end
@@ -141,8 +144,8 @@ class FetcherUi
       Proc.new do
         begin
           res = menu('Select environment', @deployment.environments('env' => @selected_env).keys, @options.environments, false, false)
-          @selected_env = res if res.kind_of?(Array)
-          @selected_env.uniq!
+          return @selected_env = res.uniq if res.kind_of?(Array)
+          res
         rescue => e
           puts "Exception when selecting environment: #{e}"
           puts "    #{e.backtrace.join("\n    ")}"
@@ -152,8 +155,8 @@ class FetcherUi
       Proc.new do
         begin
           res = menu('Select locality', @deployment.localities('env' => @selected_env).keys, @options.localities, true, false)
-          @selected_loc = res if res.kind_of?(Array)
-          @selected_loc.uniq!
+          return @selected_loc = res.uniq if res.kind_of?(Array)
+          res
         rescue => e
           puts "Exception when selecting locality: #{e}"
           puts "    #{e.backtrace.join("\n    ")}"
@@ -164,7 +167,7 @@ class FetcherUi
         begin
           puts "Going to fetch components: @selected_env: #{@selected_env}, @selected_loc: #{@selected_loc}"
           res = menu("Select components", @deployment.components('env' => @selected_env, 'loc' => @selected_loc).keys, @options.components)
-          @selected_comp = res if res.kind_of?(Array)
+          return @selected_comp = res.uniq if res.kind_of?(Array)
           res
         rescue => e
           puts "Exception when selecting components: #{e}"
@@ -175,7 +178,7 @@ class FetcherUi
       Proc.new do
         begin
           res = menu('Select hosts', @deployment.hosts('env' => @selected_env, 'loc' => @selected_loc, 'comp' => @selected_comp).keys.to_a, @options.hosts)
-          @selected_hosts = res if res.kind_of?(Array)
+          return @selected_hosts = res.uniq if res.kind_of?(Array)
           res
         rescue => e
           puts "Exception when selecting hosts: #{e}"
@@ -186,12 +189,23 @@ class FetcherUi
     ]
 
   end
-
+  
+  def set_defaults
+    @selected_env = @deployment.environments.keys 
+    @selected_env = @selected_env & @options.environments unless @options.environments.empty?
+    @selected_loc = @deployment.localities('env' => @selected_env).keys 
+    @selected_loc = @selected_loc & @options.localities unless @options.localities.empty?
+    @selected_comp = @deployment.components('env' => @selected_env, 'loc' => @selected_loc).keys
+    @selected_comp = @selected_comp & @options.components unless @options.components.empty?
+    @selected_hosts = @deployment.hosts('env' => @selected_env, 'loc' => @selected_loc, 'comp' => @selected_comp).keys
+    @selected_hosts = @selected_hosts & @options.hosts unless @options.hosts.empty?
+  end
+  
   def show_and_exit?
     if(@options.show)
-      method = :to_s
-      if(options.verbose)
-        method = :keys
+      method = :keys
+      if(@options.verbose)
+        method = :to_s
       end
       show method
       return true
@@ -201,16 +215,16 @@ class FetcherUi
 
   def show method
     puts '--- environments'
-    puts environments.send_to(method)
+    puts @deployment.environments.send(method)
     puts ''
     puts '--- localities'
-    puts localities.send_to(method)
+    puts @deployment.localities.send(method)
     puts ''
     puts '--- components'
-    puts components.send_to(method)
+    puts @deployment.components.send(method)
     puts ''
     puts '--- hosts'
-    puts hosts.send_to(method)
+    puts @deployment.hosts.send(method)
     puts ''
   end
 

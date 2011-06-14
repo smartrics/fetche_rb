@@ -38,15 +38,15 @@ class OptParser
       end
       opts.on("-l", "--localities [LOCALITIES]", Array,
         "The localities where to perform the search. Entries are comma separated.") do |env|
-          options.environments = env
+          options.localities = env
       end
       opts.on("-c", "--components [COMPONENTS]", Array,
         "The components where to perform the search. Entries are comma separated.") do |env|
-          options.environments = env
+          options.components = env
       end
       opts.on("-h", "--hosts [HOSTS]", Array,
         "The components where to perform the search. Entries are comma separated.") do |env|
-          options.environments = env
+          options.hosts = env
       end
 
       opts.on("-d", "--[no-]defaults", "Automatically accepts default values passed via command line arguments.", "Default is not to accept defaults automatically.") do |d|
@@ -93,9 +93,17 @@ class OptParser
       end
     end
 
-    opts.parse!(args)
-    validate(opts, options)
-    options
+    begin
+      opts.parse!(args)
+      validate(opts, options)
+      options
+    rescue => e
+      puts
+      puts "Error: #{e.message}"
+      puts
+      puts opts
+      exit
+    end
   end 
 
   private 
