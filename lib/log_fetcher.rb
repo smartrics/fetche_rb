@@ -4,6 +4,7 @@ require File.join(File.dirname(__FILE__), 'connection.rb')
 class LogFetcher
   # host time adj = 'date +%-::z'
   attr_reader :context, :datetime_mask, :time_mask
+  attr_accessor :progress_listeners
 
   def initialize options, context
     options = OpenStruct.new if options.nil?
@@ -14,6 +15,7 @@ class LogFetcher
     @context = context
     @context.freeze
     @connection = Connection.new
+    @progress_listeners = []
   end
 
   def utc_time_adjustment host
@@ -43,11 +45,24 @@ class LogFetcher
     /#{s}/
   end
 
+  def start
+    @worker = Thread.new do
+      @connection.execute context, build_command
+    end
+  end
+
+  def wait_completion
+    @worker.join
+  end
+    
   private 
 
   def extract_time(time) 
     a = time.to_s.split(/ /)
     a[1]
+  end
+  
+  def build_command
   end
   
 end
