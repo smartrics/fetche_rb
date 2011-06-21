@@ -1,5 +1,8 @@
+require File.join(File.dirname(__FILE__), 'fetcher_controller.rb')
+
 class FetcherUi
   def initialize options
+    @controller = FetcherController.new
     @options = options
     @deployment = deployment = Deployment.new(options.deployment_json)
     @selected_env = []
@@ -40,8 +43,9 @@ class FetcherUi
         end
       end
       show_selections()
+      dispatch_selections()
     rescue => e
-      p "Quitting: #{e.message}"
+      print_stack_trace "Quitting", e
     end
   end
 
@@ -102,7 +106,7 @@ class FetcherUi
   
   def process menu
     res = menu.call
-    
+
     if(res==:quit)
       raise "selected quit"
     end
@@ -144,22 +148,20 @@ class FetcherUi
       Proc.new do
         begin
           res = menu('Select environment', @deployment.environments('env' => @selected_env).keys, @options.environments, false, false)
-          return @selected_env = res.uniq if res.kind_of?(Array)
+          @selected_env = res.uniq if res.kind_of?(Array)
           res
         rescue => e
-          puts "Exception when selecting environment: #{e}"
-          puts "    #{e.backtrace.join("\n    ")}"
+          print_stack_trace "Exception when selecting environment", e
           raise e
         end
       end,
       Proc.new do
         begin
           res = menu('Select locality', @deployment.localities('env' => @selected_env).keys, @options.localities, true, false)
-          return @selected_loc = res.uniq if res.kind_of?(Array)
+          @selected_loc = res.uniq if res.kind_of?(Array)
           res
         rescue => e
-          puts "Exception when selecting locality: #{e}"
-          puts "    #{e.backtrace.join("\n    ")}"
+          print_stack_trace "Exception when selecting locality", e
           raise e
         end
       end,
@@ -167,22 +169,20 @@ class FetcherUi
         begin
           puts "Going to fetch components: @selected_env: #{@selected_env}, @selected_loc: #{@selected_loc}"
           res = menu("Select components", @deployment.components('env' => @selected_env, 'loc' => @selected_loc).keys, @options.components)
-          return @selected_comp = res.uniq if res.kind_of?(Array)
+          @selected_comp = res.uniq if res.kind_of?(Array)
           res
         rescue => e
-          puts "Exception when selecting components: #{e}"
-          puts "    #{e.backtrace.join("\n    ")}"
+          print_stack_trace "Exception when selecting components", e
           raise e
         end
       end,
       Proc.new do
         begin
           res = menu('Select hosts', @deployment.hosts('env' => @selected_env, 'loc' => @selected_loc, 'comp' => @selected_comp).keys.to_a, @options.hosts)
-          return @selected_hosts = res.uniq if res.kind_of?(Array)
+          @selected_hosts = res.uniq if res.kind_of?(Array)
           res
         rescue => e
-          puts "Exception when selecting hosts: #{e}"
-          puts "    #{e.backtrace.join("\n    ")}"
+          print_stack_trace "Exception when selecting hosts", e
           raise e
         end
       end
@@ -226,6 +226,16 @@ class FetcherUi
     puts '--- hosts'
     puts @deployment.hosts.send(method)
     puts ''
+  end
+  
+  def dispatch_selections
+    hosts = @deployment.hosts('env' => @selected_env, 'loc' => @selected_loc, 'comp' => @selected_comp, 'hosts' => @selected_hosts)
+    @controller.fetch @options, hosts
+  end
+
+  def print_stack_trace(message, e) 
+    puts "#{message}: #{e.message}"
+    puts "    #{e.backtrace.join("\n    ")}"
   end
 
 end

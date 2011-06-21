@@ -32,7 +32,7 @@ class OptParser
         "The file containing the deployment database. The file is expected to be in JSON format.") do |file|
           options.deployment_json = file
       end
-      opts.on("-T", "--time TIME", Time, "Extract logs at given time plus/minus 60 seconds (unless -w is specified to override the default)") do |time|
+      opts.on("-T", "--time TIME", Time, "Extract all logs at given time plus 60 seconds (unless -w is specified to override the default window size)") do |time|
         options.time = time
         puts "Time is: '#{time}' of class #{time.class}"
       end
@@ -61,7 +61,7 @@ class OptParser
         options.verbose = v
       end
 
-      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds before and after the specified time (see -T) to extend the log extraction.", "Default is 60.") do |n|
+      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds after the specified time (see -T) to extend the log extraction.", "Default is 60 seconds.") do |n|
          options.delay = n
       end
 

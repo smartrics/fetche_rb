@@ -2,5 +2,6 @@
 <buildpath>
 	<buildpathentry kind="src" path="etc"/>
 	<buildpathentry kind="src" path="lib"/>
+	<buildpathentry kind="src" path="test"/>
 	<buildpathentry kind="con" path="org.eclipse.dltk.launching.INTERPRETER_CONTAINER"/>
 </buildpath>
