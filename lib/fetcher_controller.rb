@@ -27,7 +27,7 @@ class FetcherController
   def register_progress_listener &progress_listener
     return if @fetchers.nil?
     @fetchers.each do | f |
-      f.progress_listeners << Proc.new(progress_listener)
+      f.progress_listener = Proc.new(progress_listener)
     end
   end
 

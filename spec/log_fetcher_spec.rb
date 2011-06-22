@@ -5,10 +5,12 @@ require File.join(File.dirname(__FILE__), '../lib/log_fetcher.rb')
 describe LogFetcher do
 
   before(:each) do
-    @basic_context = {"host" => "host1", "file" => "file.log.#D", "username" => "username1", "logs_dir" => "var/logs"}
+    @basic_context = {"host" => "host1", "file" => "file.log.%Y-%m-%d", "username" => "username1", "logs_dir" => "var/logs"}
     @options = OpenStruct.new
     @options.time = Time.utc(2011,6,14,17,52,11) 
     @options.timewindow = 78 #seconds
+    @mock_connection = mock("connection")
+    Connection.stub(:new).and_return(@mock_connection)
     @fetcher = LogFetcher.new @options, @basic_context
   end
 
@@ -18,7 +20,7 @@ describe LogFetcher do
       @fetcher.context["host"].should == "host1"
       @fetcher.context["username"].should == "username1"
       @fetcher.context["logs_dir"].should == "var/logs"
-      @fetcher.context["file"].should == "file.log.#D"
+      @fetcher.context["file"].should == "file.log.%Y-%m-%d"
     end
 
     it "should create an immutable context" do
@@ -40,8 +42,6 @@ describe LogFetcher do
   
   context "when calculating time difference with a host" do
     before(:each) do
-      @mock_connection = mock("connection")
-      Connection.should_receive(:new).and_return(@mock_connection)
       @fetcher = LogFetcher.new @options, @basic_context
       @num_of_sec_in_two_and_half_h = 9000
     end
@@ -59,6 +59,35 @@ describe LogFetcher do
     end
 
   end
-  
-  
+
+  context "when starting to fecth" do
+    before(:each) do
+      @mock_worker = mock("worker-thread")
+    end
+    after(:each) do
+    end
+    
+    it "should create and execute a thread that does the real job" do
+      Thread.should_receive(:new).and_return(@mock_worker)
+      @fetcher.start
+    end
+    
+  end
+
+  context "when worker threads start" do
+    it "should start a thread that delegates execution to underlying connection" do
+      @mock_fetcher_command = mock("fetcher_command")
+      FetcherCommand.stub(:new).and_return(@mock_fetcher_command)
+      @mock_fetcher_command.should_receive(:command).and_return("command")
+      @mock_connection.should_receive(:execute).with(@basic_context, "command")
+      @fetcher.start
+    end
+    it "should start a thread that builds the command to execute to the remote host" do
+      @mock_connection.should_receive(:execute).with(@basic_context, "nice grep -E -e '2011-06-14 17:5[23]+' var/logs/file.log.2011-06-14")
+      @fetcher.start
+    end
+    after(:each) do
+      @fetcher.wait_completion
+    end
+  end
 end

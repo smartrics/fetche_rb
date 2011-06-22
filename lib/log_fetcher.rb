@@ -1,19 +1,27 @@
 require 'ostruct'
 require File.join(File.dirname(__FILE__), 'connection.rb')
+require File.join(File.dirname(__FILE__), 'fetcher_command.rb')
 
 class LogFetcher
   # host time adj = 'date +%-::z'
   attr_reader :context, :datetime_mask, :time_mask
-  attr_accessor :progress_listeners
+  attr_accessor :progress_listener
 
   def initialize options, context
-    options = OpenStruct.new if options.nil?
-    raise "time option is mandatory" if options.time.nil?
-    raise "timewindow option is mandatory" if options.timewindow.nil?
-    @datetime_mask = build_regex_mask(options.time.to_s, (options.time + options.timewindow).to_s)
-    @time_mask = build_regex_mask(extract_time(options.time), extract_time(options.time + options.timewindow))
+    @options = options
+    raise "options are mandatory" if @options.nil?
+    raise "time option is mandatory" if @options.time.nil?
+    raise "timewindow option is mandatory" if @options.timewindow.nil?
+    @datetime_mask = build_regex_mask(@options.time.to_s, (@options.time + @options.timewindow).to_s)
+    @time_mask = build_regex_mask(extract_time(@options.time), extract_time(@options.time + @options.timewindow))
+
     @context = context
     @context.freeze
+    raise "file is mandatory" if @context["file"].nil?
+    @log_file = ""
+    @log_file << @context["logs_dir"] << "/" unless @context["logs_dir"].nil?
+    @log_file << @context["file"]
+    
     @connection = Connection.new
     @progress_listeners = []
   end
@@ -46,7 +54,7 @@ class LogFetcher
   end
 
   def start
-    @worker = Thread.new do
+    @worker = Thread.new(@progress_listener) do
       @connection.execute context, build_command
     end
   end
@@ -63,6 +71,11 @@ class LogFetcher
   end
   
   def build_command
+    fetcher_command = FetcherCommand.new :log_file => substitute_time_patterns(@log_file), :datetime_mask => @datetime_mask.source, :tokens => @context["tokens"]
+    fetcher_command.command
   end
   
+  def substitute_time_patterns string
+    @options.time.strftime(string)
+  end
 end
