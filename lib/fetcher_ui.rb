@@ -230,9 +230,7 @@ class FetcherUi
   
   def dispatch_selections
     hosts = @deployment.hosts('env' => @selected_env, 'loc' => @selected_loc, 'comp' => @selected_comp, 'hosts' => @selected_hosts)
-    @controller.fetch @options, hosts do | progress_message |
-      puts progress_message
-    end
+    @controller.fetch @options, hosts, $stdout
   end
 
   def print_stack_trace(message, e) 

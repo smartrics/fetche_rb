@@ -7,7 +7,7 @@ class LogFetcher
   attr_reader :context, :datetime_mask, :time_mask
   attr_accessor :progress_listener
 
-  def initialize options, context
+  def initialize options, context, progress_listener
     @options = options
     raise "options are mandatory" if @options.nil?
     raise "time option is mandatory" if @options.time.nil?
@@ -18,12 +18,13 @@ class LogFetcher
     @context = context
     @context.freeze
     raise "file is mandatory" if @context["file"].nil?
+    raise "username is mandatory" if @context["username"].nil?
+    raise "host is mandatory" if @context["host"].nil?
     @log_file = ""
     @log_file << @context["logs_dir"] << "/" unless @context["logs_dir"].nil?
     @log_file << @context["file"]
-    
-    @connection = Connection.new
-    @progress_listeners = []
+    @progress_listener = progress_listener
+    @connection = Connection.new @context["username"], @context["host"]
   end
 
   def utc_time_adjustment host
@@ -54,8 +55,8 @@ class LogFetcher
   end
 
   def start
-    @worker = Thread.new(@progress_listener) do
-      @connection.execute context, build_command
+    @worker = Thread.new(@progress_listener) do | progress_listener |
+      @connection.execute build_command, progress_listener
     end
   end
 
