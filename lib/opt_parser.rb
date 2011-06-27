@@ -61,6 +61,10 @@ class OptParser
         options.verbose = v
       end
 
+      opts.on("--log-server [HOST:PORT]", "Host where log server is running in.", "Default is localhost:21012") do |h|
+        options.log_server = h
+      end
+      
       opts.on("-w", "--timewindow [S]", Integer, "Number of seconds after the specified time (see -T) to extend the log extraction.", "Default is 60 seconds.") do |n|
          options.delay = n
       end

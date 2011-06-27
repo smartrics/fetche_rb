@@ -1,18 +1,22 @@
 require File.join(File.dirname(__FILE__), 'log_fetcher.rb')
+require File.join(File.dirname(__FILE__), 'log_client.rb')
 
 class FetcherController
   def fetch options, selections, progress_listener
     @fetchers = build_log_fetchers(options, selections, progress_listener)
-    start_fetchers 
+    start_fetchers options
     wait_for_fetchers_completion
   end
 
   private
 
-  def start_fetchers 
+  def start_fetchers options 
     return if @fetchers.nil?
     @fetchers.each do | f |
-      f.start
+      log_message_builder = LogClient.new options, f.context["component"],  f.context["host"]
+      f.start do | log_line | 
+        log_message_builder.notify(log_line)
+      end
     end
   end
 
