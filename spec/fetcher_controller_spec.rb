@@ -23,6 +23,7 @@ describe FetcherController do
     @mock_log_fetchers << mock("log_fetcher_1")
     @mock_log_fetchers << mock("log_fetcher_2")
     @mock_log_fetchers << mock("log_fetcher_3")
+    @mock_log_fetchers.each { | f | f.stub(:context).and_return({"component" => "some", "host" => "localhost"}) }
   end
 
   context "when initializing the fetchers" do
