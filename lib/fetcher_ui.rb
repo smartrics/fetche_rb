@@ -52,7 +52,6 @@ class FetcherUi
   private 
   
   def menu(name, options, defaults, with_back = true, with_all = true)
-    puts "options: #{options}, def: #{defaults}"
     selections = []
     puts ""
     puts name

@@ -6,7 +6,6 @@ class LogFetcher
   # host time adj = 'date +%-::z'
   attr_reader :context, :datetime_mask, :time_mask
   attr_accessor :progress_listener
-
   def initialize options, context, progress_listener
     @options = options
     raise "options are mandatory" if @options.nil?
@@ -54,28 +53,35 @@ class LogFetcher
     /#{s}/
   end
 
-  def start
+  def start &block
+    raise "fetcher already started" unless @worker.nil?
+    raise "no block given for processing fetched data" unless block_given?
+    raise "the given block must have arity equal to one" if block_given? && block.arity != 1
     @worker = Thread.new(@progress_listener) do | progress_listener |
-      @connection.execute build_command, progress_listener
+      result = @connection.execute build_command, progress_listener do | data |
+        data.each_line do | line |
+          block.call(line)
+        end
+      end
     end
   end
 
   def wait_completion
-    @worker.join
+    @worker.join unless @worker.nil?
   end
-    
-  private 
 
-  def extract_time(time) 
+  private
+
+  def extract_time(time)
     a = time.to_s.split(/ /)
     a[1]
   end
-  
+
   def build_command
     fetcher_command = FetcherCommand.new :log_file => substitute_time_patterns(@log_file), :datetime_mask => @datetime_mask.source, :tokens => @context["tokens"]
     fetcher_command.command
   end
-  
+
   def substitute_time_patterns string
     @options.time.strftime(string)
   end
