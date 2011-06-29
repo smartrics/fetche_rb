@@ -13,9 +13,9 @@ class FetcherController
   def start_fetchers options 
     return if @fetchers.nil?
     @fetchers.each do | f |
-      log_message_builder = LogClient.new options, f.context["component"],  f.context["host"]
+      log_client = LogClient.new options, f.context["component"],  f.context["host"]
       f.start do | log_line | 
-        log_message_builder.notify(log_line)
+        log_client.notify(log_line)
       end
     end
   end

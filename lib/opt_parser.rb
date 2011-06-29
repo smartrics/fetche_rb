@@ -61,7 +61,7 @@ class OptParser
         options.verbose = v
       end
 
-      opts.on("--log-server [HOST:PORT]", "Host where log server is running in.", "Default is localhost:21012") do |h|
+      opts.on("--log-server [HOST:PORT]", "Host where log server is running.", "Default is localhost:12201") do |h|
         options.log_server = h
       end
       
