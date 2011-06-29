@@ -1,0 +1,11 @@
+yyyy-mm-dd 17:05:27,713 <process> [INFO  ] [class] message
+ 
+deal[\s-]id
+ 
+2011-06-28 17:05:27,713 <main> [INFO  ] [com.dkib.efx.protocol.wire.marshallers.util.MarshallerCache] Successfully created marshaller and unmarshaller [package=com.dkib.efx.protocol.wire.marshallers.v1, model-class=class com.dkib.efx.protocol.model.LastLookDealInstruction, marshaller-class=com.dkib.efx.protocol.wire.marshallers.v1.LastLookDealInstructionMarshaller]
+2011-06-28 17:05:27,713 <main> [INFO  ] [com.dkib.efx.protocol.wire.marshallers.ProtocolConfiguration] Have registered wire version with factory [version=1, factory=com.dkib.efx.protocol.wire.marshallers.v1.MarshallerFactory]
+2011-06-28 17:05:27,744 <main> [INFO  ] [com.dkib.efx.comms.receiver.impl.ReceiverImpl] Have constructed a receiver [process-threads=2]
+2011-06-28 17:05:27,744 <main> [INFO  ] [com.dkib.efx.comms.receiver.impl.UnmarshallingMessageListener] Constructed an unmarshalling listener [receive-threads=2]
+2011-06-28 17:14:58,317 <main> [INFO  ] [com.dkib.efx.protocol.wire.marshallers.ProtocolConfiguration] Have registered class with wire format [class=class com.dkib.efx.protocol.model.PricerConnect, format=0]
+2011-06-28 17:14:58,317 <main> [INFO  ] [com.dkib.efx.protocol.wire.marshallers.ProtocolConfiguration] Have registered class with wire format [class=class com.dkib.efx.protocol.model.PricerHeartbeat, format=1]
+2011-06-28 17:14:58,317 <main> [INFO  ] [com.dkib.efx.protocol.wire.marshallers.ProtocolConfiguration] Have registered class with wire format [class=class com.dkib.efx.protocol.model.PriceSubscribe, format=2]
