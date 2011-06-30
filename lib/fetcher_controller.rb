@@ -14,8 +14,9 @@ class FetcherController
     return if @fetchers.nil?
     @fetchers.each do | f |
       log_client = LogClient.new options, f.context["component"],  f.context["host"]
-      f.start do | log_line | 
-        log_client.notify(log_line)
+      f.start do | progress_listener, log_line | 
+        result = log_client.notify(log_line)
+        progress_listener.puts "notifyed line '#{result}': #{line}"
       end
     end
   end

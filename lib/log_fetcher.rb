@@ -23,7 +23,7 @@ class LogFetcher
     @log_file << @context["logs_dir"] << "/" unless @context["logs_dir"].nil?
     @log_file << @context["file"]
     @progress_listener = progress_listener
-    @connection = Connection.new @context["username"], @context["host"]
+    @connection = Connection.new :host=> @context["host"], :user => @context["username"], :verbose => options.verbose, :key => @options.keyfile
   end
 
   def utc_time_adjustment host
@@ -56,11 +56,11 @@ class LogFetcher
   def start &block
     raise "fetcher already started" unless @worker.nil?
     raise "no block given for processing fetched data" unless block_given?
-    raise "the given block must have arity equal to one" if block_given? && block.arity != 1
+    raise "the given block must have arity equal to one" if block_given? && block.arity != 2
     @worker = Thread.new(@progress_listener) do | progress_listener |
       result = @connection.execute build_command, progress_listener do | data |
         data.each_line do | line |
-          block.call(line)
+          block.call(@progress_listener, line)
         end
       end
     end

@@ -18,7 +18,9 @@ describe LogFetcher do
   context "when initialized" do
 
     it "should create a connection object to delegate remote commands to" do
-      Connection.should_receive(:new).with(@basic_context["username"], @basic_context["host"]).and_return(@mock_connection)
+      Connection.should_receive(:new).with(hash_including(
+        :user => @basic_context["username"], 
+        :host => @basic_context["host"])).and_return(@mock_connection)
       @fetcher = LogFetcher.new @options, @basic_context, @mock_progress_listener
     end
 
@@ -118,7 +120,7 @@ describe LogFetcher do
 
     it "should create and execute a thread that does the real job" do
       Thread.should_receive(:new).and_return(@mock_worker)
-      @fetcher.start { | data | data }
+      @fetcher.start { | progress_listener, data | data }
     end
 
   end
@@ -126,13 +128,13 @@ describe LogFetcher do
   context "when worker threads start" do
     it "should start a thread once" do
       @mock_connection.stub(:execute)
-      @fetcher.start { | data | data }
-      lambda { @fetcher.start { | data | data } }.should raise_error(RuntimeError)
+      @fetcher.start { | progress_listener, data | data }
+      lambda { @fetcher.start { | progress_listener, data | data } }.should raise_error(RuntimeError)
     end
 
     it "should start a thread that builds the command to execute to the remote host" do
       @mock_connection.should_receive(:execute).with("nice grep -E -e '2011-06-14 17:5[23]+' var/logs/file.log.2011-06-14", @mock_progress_listener)
-      @fetcher.start { | data | data }
+      @fetcher.start { | progress_listener, data | data }
     end
     
     context "and performs execution" do
@@ -144,23 +146,23 @@ describe LogFetcher do
 
       it "should start a thread that delegates execution to underlying connection" do
         @mock_connection.should_receive(:execute).with("command", @mock_progress_listener)
-        @fetcher.start { | data | data }
+        @fetcher.start { | progress_listener, data | data }
       end
 
       it "should yield to the passed block each line retrieved from the underlying connection" do
         @mock_connection.stub(:execute).with("command", @mock_progress_listener).and_yield("line1\nline2\nline3");
-        result = @fetcher.start do | log_line |
+        result = @fetcher.start do | progress_listener, log_line |
           log_line.should =~ /line[123]?\n?/
         end
       end
 
       it "should raise an exception if no block given to process data" do
-        @mock_connection.stub(:execute).with("command", @mock_progress_listener).and_yield("line1\nline2\nline3");
+        @mock_connection.stub(:execute).with("command", @mock_progress_listener);
         lambda { @fetcher.start }.should raise_error(RuntimeError)
       end
 
-      it "should raise an exception if given block has arity different than one" do
-        @mock_connection.stub(:execute).with("command", @mock_progress_listener).and_yield("line1\nline2\nline3");
+      it "should raise an exception if given block has arity different than two" do
+        @mock_connection.stub(:execute).with("command", @mock_progress_listener);
         lambda { @fetcher.start {} }.should raise_error(RuntimeError)
       end
     end

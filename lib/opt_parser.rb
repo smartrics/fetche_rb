@@ -17,6 +17,7 @@ class OptParser
     options.accept_defaults = false
     options.time = nil
     options.timewindow = 60
+    options.keyfile = ENV["PRIVATE_KEY"]
     options.tokens = []
     options.verbose = false
     options.deployment_json = nil
@@ -51,6 +52,11 @@ class OptParser
       opts.on("-h", "--hosts [HOSTS]", Array,
         "The components where to perform the search. Entries are comma separated.") do |env|
           options.hosts = env
+      end
+
+      opts.on("-k", "--private-key [FILE]",
+        "The path to your private key file. If not specified, it defaults to $PRIVATE_KEY.") do |f|
+          options.keyfile = f
       end
 
       opts.on("-d", "--[no-]defaults", "Automatically accepts default values passed via command line arguments.", "Default is not to accept defaults automatically.") do |d|
