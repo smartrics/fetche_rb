@@ -16,7 +16,7 @@ class FetcherController
       log_client = LogClient.new options, f.context["component"],  f.context["host"]
       f.start do | progress_listener, log_line | 
         result = log_client.notify(log_line)
-        progress_listener.puts "notifyed line '#{result}': #{line}"
+        progress_listener.puts "notifyed line '#{result}': #{log_line}"
       end
     end
   end
