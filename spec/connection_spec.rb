@@ -1,6 +1,8 @@
 require 'ostruct'
+require 'stringio'
 require File.join(File.dirname(__FILE__), 'helper.rb')
 require File.join(File.dirname(__FILE__), '../lib/log_fetcher.rb')
+require File.join(File.dirname(__FILE__), '../lib/connection.rb')
 
 describe Connection do
 
@@ -46,7 +48,31 @@ describe Connection do
       c = Connection.new @args 
       c.verbose().should == :debug
     end
-    
+
+    context "when Net::SSH is mocked out" do
+      before(:each) do
+        @net_ssh_mock = mock("net_ssh_mock")
+        @ssh_session_mock = mock("ssh_session_mock")
+        @ssh_channel_mock = mock("ssh_channel_mock")
+      end
+      
+      it "should yield the passed block with the input data" do
+        buffer = ""
+        c = Connection.new @args 
+        progress_listener = StringIO.new(buffer)
+        Net::SSH.should_receive(:start).with(@args[:host], @args[:user], hash_including(:log => progress_listener)).and_yield(@ssh_session_mock)
+        @ssh_session_mock.should_receive(:open_channel).and_yield(@ssh_channel_mock)
+        @ssh_channel_mock.should_receive(:on_data).and_yield(@ssh_channel_mock, "some").and_yield(@ssh_channel_mock, "data")
+        @ssh_channel_mock.should_receive(:exec).with("command")
+        lines = []
+        c.execute "command", progress_listener do | line | 
+          lines << line
+        end
+        lines[0].should == "some"
+        lines[1].should == "data"
+      end
+    end
+        
   end
 
 end

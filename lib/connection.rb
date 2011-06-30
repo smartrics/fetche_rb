@@ -19,12 +19,13 @@ class Connection
   end
   
   def execute command, progress_listener
-    io_listener = progress_listener if progress_listener.kind_of(IO)
+    io_listener = $stdout
+    io_listener = progress_listener if progress_listener.kind_of?(IO)
     buffer = ""
     Net::SSH.start(@host, @user,
         :paranoid => false,
         :verbose => @verbose,
-        :log => progress_listener,
+        :logger => io_listener,
         :key => @key,
         :password => @password) do |session|
       session.open_channel do | channel |
