@@ -1,4 +1,5 @@
 require 'date'
+require 'digest/md5'
 require 'gelf'
 
 class LogClient
@@ -42,7 +43,9 @@ class LogClient
   def notify log_line
     m = {}
     parse_line m, log_line
-    @notifier.notify m
+    result = @notifier.notify m
+    m["sent"] = !result.nil?
+    m
   end
 
   private
@@ -58,6 +61,7 @@ class LogClient
     m["level"] = parse_level(data[2]) if data.length > 2
     m["_class"] = data[3] || 'unknown' if data.length > 3
     m["short_message"] = data[4] || line if data.length > 4
+    m["_dup_id"] = Digest::MD5.hexdigest(line)
     parse_fields(m, m["short_message"])
   end
 

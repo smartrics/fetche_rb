@@ -64,5 +64,13 @@ describe LogClient do
       @log_client.notify log_line
     end
     
+    it "should contain the additional field _dup_id with the digest of the logline to avoid duplication" do
+      log_line = "#{@timestamp_s} <#{@process}> [#{@level}] [#{@clazz}] #{@message} #{@fields} blabla"
+      @mock_notifier.should_receive(:notify).with(hash_including(
+        '_dup_id' => Digest::MD5.hexdigest(log_line)
+      ))
+      @log_client.notify log_line
+    end
+    
   end
 end
