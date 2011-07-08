@@ -79,6 +79,7 @@ class LogClient
   end
 
   def parse_fields m, line
+    return if line.nil?
     ADDITIONAL_FIELDS_REGEXES.each do | regex, field |
       data = line.scan(regex).flatten
       m[field] = data[0] unless data.empty?

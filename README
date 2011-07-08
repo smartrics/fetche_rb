@@ -1,2 +1,9 @@
 A simple client application to go fetch log messages from distributed log files and push them to a central repository
 
+TODO:
+
+ - mod options to just include conf file
+ - submit options grid
+ - fix log fetcher and controller to reflect the new hosts format
+ - 
+ 

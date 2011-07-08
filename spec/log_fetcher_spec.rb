@@ -10,6 +10,7 @@ describe LogFetcher do
     @options.time = Time.utc(2011,6,14,17,52,11)
     @options.timewindow = 78 #seconds
     @mock_progress_listener = double("mock_progress_listener")
+    @mock_progress_listener.stub(:puts)
     @mock_connection = mock("mock_connection")
     Connection.stub(:new).and_return(@mock_connection)
     @fetcher = LogFetcher.new @options, @basic_context, @mock_progress_listener
@@ -145,6 +146,7 @@ describe LogFetcher do
       end
 
       it "should start a thread that delegates execution to underlying connection" do
+        @mock_progress_listener.should_receive(:puts).with("Fetcher[22] started. host:'host1', user:'username1', logfile:'var/logs/file.log.%Y-%m-%d', command:'command'")
         @mock_connection.should_receive(:execute).with("command", @mock_progress_listener)
         @fetcher.start { | progress_listener, data | data }
       end

@@ -1,5 +1,8 @@
 require File.join(File.dirname(__FILE__), 'fetcher_controller.rb')
 
+# filter based on presence of all *tag*
+
+
 class FetcherUi
   def initialize options
     @controller = FetcherController.new

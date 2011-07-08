@@ -3,10 +3,17 @@ require File.join(File.dirname(__FILE__), 'connection.rb')
 require File.join(File.dirname(__FILE__), 'fetcher_command.rb')
 
 class LogFetcher
+  
+  @@id = 0
+  
   # host time adj = 'date +%-::z'
-  attr_reader :context, :datetime_mask, :time_mask
-  attr_accessor :progress_listener
+  attr_reader :context, :datetime_mask, :time_mask, :id
+  attr_accessor :progress_listener, :sent, :to_send
   def initialize options, context, progress_listener
+    @id = @@id
+    @@id = @@id + 1
+    @sent = 0
+    @to_send = 0
     @options = options
     raise "options are mandatory" if @options.nil?
     raise "time option is mandatory" if @options.time.nil?
@@ -57,8 +64,10 @@ class LogFetcher
     raise "fetcher already started" unless @worker.nil?
     raise "no block given for processing fetched data" unless block_given?
     raise "the given block must have arity equal to one" if block_given? && block.arity != 2
-    @worker = Thread.new(@progress_listener) do | progress_listener |
-      result = @connection.execute build_command, progress_listener do | data |
+    @worker = Thread.new do
+      command = build_command
+      @progress_listener.puts "Fetcher[#{@id}] started. host:'#{@context["host"]}', user:'#{@context["username"]}', logfile:'#{@log_file}', command:'#{command}'"
+      result = @connection.execute command, @progress_listener do | data |
         data.each_line do | line |
           block.call(@progress_listener, line)
         end

@@ -1,11 +1,16 @@
 require File.dirname(__FILE__) + '/version.rb'
+require 'singleton'
 require 'optparse'
 require 'optparse/time'
 require 'ostruct'
 require 'pp'
 
 class OptParser
-  
+
+  def self.options
+    @@options
+  end
+    
   def self.parse(args)
     # The options specified on the command line will be collected in *options*.
     # We set default values here.
@@ -22,6 +27,9 @@ class OptParser
     options.verbose = false
     options.deployment_json = nil
     options.show = false
+    options.log_server = "localhost:12201"
+    options.concurrent_connections = 5
+    options.time = Time.new.utc - 60
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: fetcher.rb -f FILE -T TIME [options]"
@@ -33,7 +41,7 @@ class OptParser
         "The file containing the deployment database. The file is expected to be in JSON format.") do |file|
           options.deployment_json = file
       end
-      opts.on("-T", "--time TIME", Time, "Extract all logs at given time plus 60 seconds (unless -w is specified to override the default window size)") do |time|
+      opts.on("-T", "--time [TIME]", Time, "Extract all logs at given time plus 60 seconds (unless -w is specified to override the default window size)") do |time|
         options.time = time
         puts "Time is: '#{time}' of class #{time.class}"
       end
@@ -71,8 +79,12 @@ class OptParser
         options.log_server = h
       end
       
-      opts.on("-w", "--timewindow [S]", Integer, "Number of seconds after the specified time (see -T) to extend the log extraction.", "Default is 60 seconds.") do |n|
-         options.delay = n
+      opts.on("-w", "--timewindow [w]", Integer, "Number of seconds after the specified time (see -T) to extend the log extraction.", "Default is 60 seconds.") do |n|
+         options.timewindow = n
+      end
+      
+      opts.on("-p", "--concurrent-connections [p]", Integer, "Number of concurrent connections to remote servers to fetch log data.", "Default is 5 connections.") do |n|
+         options.concurrent_connections = n
       end
 
       opts.on("-t", "--tokens [TOKENS]", Array,
@@ -105,7 +117,14 @@ class OptParser
     begin
       opts.parse!(args)
       validate(opts, options)
-      options
+      @@options = options
+      def @@options.to_hash
+        self.marshal_dump
+      end
+      def @@options.update_from_hash hash
+        self.marshal_load hash
+      end
+      @@options
     rescue => e
       puts
       puts "Error: #{e.message}"
@@ -132,10 +151,12 @@ class OptParser
         messages << "File '#{options.deployment_json}' can not be read! (#{e.message})"
       end
     end
-    if options.time.nil?
-      messages << "You must specify -T option"
+    unless options.timewindow.to_i  > 0
+      messages << "You must specify a positive number for -w"
     end
-
+    unless options.concurrent_connections.to_i  > 0
+      messages << "You must specify a positive number for -p"
+    end
     if messages.length() > 0
       puts "Errors:"
       puts
