@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/deployment_db'
 require File.dirname(__FILE__) + '/opt_parser'
 require File.dirname(__FILE__) + '/fetcher_controller'
+require File.dirname(__FILE__) + '/cell_filter'
 require 'sinatra/base'
 require 'erb'
 require 'json'
@@ -96,35 +97,16 @@ class FetcherWui < Sinatra::Base
     rulesFun = []
     filters["rules"].each do | el |
       rulesFun << Proc.new do | map |
+        result = false
         # the input map is that coming from the deployment
-        overall_result = [] # true for each filter that match the attribute to filter
         begin
           src = map[el["field"]] # the attribute to filter
-          matcher = el["data"] # the filter data
-          all_filters_size = 1
-          unless(matcher.nil? || src.nil?)
-            if src.kind_of?(Array)
-              matched_array = []
-              matcher_array = matcher.split(",").collect { | el | el.strip }
-              result = []
-              matcher_array.each do | regex |
-                src.each do | s |
-                  r = (s =~ /#{regex}/)
-                  result << r
-                end
-              end
-              all_filters_size = matcher_array.size
-              overall_result = result.compact
-            else
-              r = (src =~ /#{matcher}/)
-              overall_result << r
-            end
-          end
+          matcher = el["data"] # the filters
+        result = CellFilter.new.accept(src.dup, matcher)
         rescue => e
           puts "[EXCEPTION #{e.message}"
-          overall_result = []
         end
-        overall_result.compact.size == all_filters_size
+        result
       end
     end
     rulesFun

@@ -1,3 +1,4 @@
+require File.join(File.dirname(__FILE__), 'helper.rb')
 require File.join(File.dirname(__FILE__), '../lib/fetcher_command.rb')
 
 describe FetcherCommand do

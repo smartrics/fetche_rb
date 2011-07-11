@@ -4,16 +4,16 @@ jQuery("#grid").jqGrid({
    	colNames:['Id', 'Name','Host', 'User', 'Dir','File','Loc', 'Env', 'Tags'],
    	colModel:[
    		{name:'id',index:'id', width:10, editable:false, hidden:true},
-   		{name:'name',index:'name', width:55, editable:true},
-   		{name:'host',index:'host', width:60, editable:true},
-   		{name:'username',index:'username', width:40, editable:true},
-   		{name:'logs_dir',index:'logs_dir', width:60, editable:true},
-   		{name:'file',index:'file', width:100,editable:true},		
+   		{name:'name',index:'name', width:55, editable:true, edittype:"textarea"},
+   		{name:'host',index:'host', width:60, editable:true, edittype:"textarea"},
+   		{name:'username',index:'username', width:40, editable:true, edittype:"textarea"},
+   		{name:'logs_dir',index:'logs_dir', width:60, editable:true, edittype:"textarea"},
+   		{name:'file',index:'file', width:130,editable:true, edittype:"textarea"},		
    		{name:'locality',index:'locality', width:32, editable:true, edittype:"select",editoptions:{value:"london:london;newyork:newyork;tokyo:tokyo"}},
    		{name:'environment',index:'environment', width:32, editable:true, edittype:"select",editoptions:{value:"dev:dev;demo:demo;uat:uat;prod:prod"}},
-   		{name:'tags',index:'tags', sortable:false, editable:true}		
+   		{name:'tags',index:'tags', sortable:false, editable:true, edittype:"textarea"}		
    	],
-   	rowNum:50,
+	rowNum:50,
 	rowTotal: 2000,
    	rowList:[20,30,40],
    	pager: '#pager',
@@ -69,24 +69,6 @@ function formToJSON( selector )
      return form;
 }
 
-
-jQuery("#grid").jqGrid('navButtonAdd','#pager',{
-    caption: "Submit",
-    title: "Start retrieval",
-    buttonicon: "ui-icon-calculator",
-    onClickButton : function (){
-		confirmDialog(function(){
-			var ids = $('#grid').jqGrid('getCol', 'id', false);
-			var names = $('#grid').jqGrid('getCol', 'name', false);
-			var options = formToJSON("#options")
-	    	var jqxhr = $.post("/fetcher", {"ids" : ids, "names" : names, "options" : options})
-		    // Set another completion function for the request above
-	    	jqxhr.complete(completionDialog);
-		});
-    }
-});
-
-
 $("#pager_left table.navtable tbody tr").append(
 '<td class="ui-pg-button ui-corner-all"><div class="ui-pg-div">' +
   '<span class="ui-icon ui-icon-shuffle"></span>' +
@@ -110,4 +92,20 @@ jQuery("#chngroup").change(function(){
 	}
 });
     
+
+jQuery("#grid").jqGrid('navButtonAdd','#pager',{
+    caption: "Submit",
+    title: "Start retrieval",
+    buttonicon: "ui-icon-calculator",
+    onClickButton : function (){
+		confirmDialog(function(){
+			var ids = $('#grid').jqGrid('getCol', 'id', false);
+			var names = $('#grid').jqGrid('getCol', 'name', false);
+			var options = formToJSON("#options")
+	    	var jqxhr = $.post("/fetcher", {"ids" : ids, "names" : names, "options" : options})
+		    // Set another completion function for the request above
+	    	jqxhr.complete(completionDialog);
+		});
+    }
+});
 
