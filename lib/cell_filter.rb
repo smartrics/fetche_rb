@@ -1,29 +1,24 @@
 class CellFilter
-
   def accept value, regexes_as_csv_strings
     regexes_as_string = regexes_as_csv_strings
     regexes_as_string = regexes_as_csv_strings.split(",") if(regexes_as_csv_strings.respond_to?(:split))
-    regexes_as_string.each do | regex_as_string |
+    parts = value
+    parts = value.split(",") if(value.respond_to?(:split)) ## its an array otherwise
+    count = 0
+    count = regexes_as_string.count do | regex_as_string |
       begin
-        regex = /#{regex_as_string}/
-        parts = value
-        parts = value.split(",") if(value.respond_to?(:split))
-        matches = find_matches(parts, regex)
-        return true if parts.size > 0
+        count_matches(parts, /#{regex_as_string}/) > 0
       rescue RegexpError => e
         raise "Invalid regex #{regex_as_string}: #{e.message}"
       end
     end
-    false
+    count == regexes_as_string.size
   end
 
   private
 
-  def find_matches parts, regex
-    puts "parts before: #{parts}"
-    parts.delete_if do |part|
-      !(part.strip =~ regex)
-    end
-    puts "parts after: #{parts}"
+  def count_matches parts, regex
+    parts.count { | part | part.strip =~ regex }
   end
+
 end

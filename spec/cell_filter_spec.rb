@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), 'helper.rb')
-require File.join(File.dirname(__FILE__), '../lib/row_filter.rb')
+require File.join(File.dirname(__FILE__), '../lib/cell_filter.rb')
 
 describe CellFilter do
   before(:each) do
-    @row_filter = RowFilter.new
+    @row_filter = CellFilter.new
   end
   context "for all filtering requests" do
     it "should raise an error if the input filter is an invalid regex" do
@@ -39,31 +39,35 @@ describe CellFilter do
     end
 
     describe "a value with a list of comma separated list of filters" do
-      it "should return true if at least one filter matches the value" do
-        @row_filter.accept("something", "ted,ome,some.hong").should be_true
+      it "should return true if all filters matches the value" do
+        @row_filter.accept("something", "som,eth,ing").should be_true
       end
 
-      it "should return false if no filters matche the value" do
-        @row_filter.accept("something", "ted,bob,^[^s]").should be_false
-      end
-    end
-
-    describe "a value with a list of comma separated list of filters" do
-      it "should return true if at least one filter matches the value" do
-        @row_filter.accept("something", "ted,ome,some.hong").should be_true
-      end
-
-      it "should return false if no filters matche the value" do
+      it "should return false if at least one filter doesn't match the value" do
+        @row_filter.accept("something", "ted,ome,some.hong").should be_false
         @row_filter.accept("something", "ted,bob,^[^s]").should be_false
       end
     end
 
     describe "a comma separated list of values with a list of comma separated list of filters" do
-      it "should return true if at least one filter matches at least one value" do
-        @row_filter.accept("something,then,rather", "ted,ome,some.hong,[^st]").should be_true
+      it "should return true if all filters matches some values" do
+        @row_filter.accept("deal,rates", "de,ra").should be_true
+        @row_filter.accept("something,then", "so,th").should be_true
+        @row_filter.accept("something,then,rather", "some").should be_true
+        @row_filter.accept("something,then,rather", "her,hen").should be_true
+        @row_filter.accept("something,then,rather", "so,hen,ra").should be_true
       end
 
-      it "should return false if no filters matche the value" do
+      it "should return true if all filters matches some values specified as array" do
+        @row_filter.accept(["deal", "rates"], "de,ra").should be_true
+        @row_filter.accept(["something","then"], "so,th").should be_true
+        @row_filter.accept(["something","then","rather"], "some").should be_true
+        @row_filter.accept(["something","then","rather"], "her,hen").should be_true
+        @row_filter.accept(["something","then","rather"], "so,hen,ra").should be_true
+      end
+      
+      it "should return false if no filters matches any of the value" do
+        @row_filter.accept("something,then,rather", "so,hen,rep").should be_false
         @row_filter.accept("something,but,nothing", "ted,bob,^[^nbs]").should be_false
       end
     end
