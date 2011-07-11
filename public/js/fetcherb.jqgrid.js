@@ -33,13 +33,16 @@ jQuery("#grid").jqGrid({
 		groupOrder: ['asc']   		
    	}
    	});
+
 jQuery("#grid").jqGrid('navGrid','#pager',
 	{edit:true,add:true,del:true}, 
 	{reloadAfterSubmit:false}, // edit
 	{reloadAfterSubmit:false}, // add
 	{reloadAfterSubmit:false} // del
 	);
-jQuery("#grid").jqGrid('filterToolbar',{stringResult: true,searchOnEnter : true});
+
+jQuery("#grid").jqGrid('filterToolbar',{stringResult: true,searchOnEnter : true}); 
+
 jQuery("#grid").jqGrid('navButtonAdd','#pager',{
     caption: "Columns",
     title: "Reorder Columns",
@@ -47,6 +50,7 @@ jQuery("#grid").jqGrid('navButtonAdd','#pager',{
         jQuery("#grid").jqGrid('columnChooser');
     }
 });
+
 function formToJSON( selector )
 {
      var form = {};

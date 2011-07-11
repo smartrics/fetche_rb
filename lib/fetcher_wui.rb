@@ -21,7 +21,7 @@ class FetcherWui < Sinatra::Base
     content_type :json
     OptParser.options.to_hash.to_json
   end
-  
+
   post "/fetcher" do
     content = request.body.read
     verbose = params["options"][:verbose]
@@ -33,7 +33,7 @@ class FetcherWui < Sinatra::Base
     prog_listener = $stdout
     controller.fetch OptParser.options, hosts, prog_listener
   end
-  
+
   post "/deployments" do
     if params[:oper] == "add"
       tags = []
@@ -102,7 +102,9 @@ class FetcherWui < Sinatra::Base
         begin
           src = map[el["field"]] # the attribute to filter
           matcher = el["data"] # the filters
-        result = CellFilter.new.accept(src.dup, matcher)
+          result = CellFilter.new.accept(src.dup, matcher)
+          puts "result: #{result}"
+          puts
         rescue => e
           puts "[EXCEPTION #{e.message}"
         end
