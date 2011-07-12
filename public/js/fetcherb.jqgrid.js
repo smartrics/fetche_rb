@@ -9,8 +9,8 @@ jQuery("#grid").jqGrid({
    		{name:'username',index:'username', width:40, editable:true, edittype:"textarea"},
    		{name:'logs_dir',index:'logs_dir', width:60, editable:true, edittype:"textarea"},
    		{name:'file',index:'file', width:130,editable:true, edittype:"textarea"},		
-   		{name:'locality',index:'locality', width:32, editable:true, edittype:"select",editoptions:{value:"london:london;newyork:newyork;tokyo:tokyo"}},
-   		{name:'environment',index:'environment', width:32, editable:true, edittype:"select",editoptions:{value:"dev:dev;demo:demo;uat:uat;prod:prod"}},
+   		{name:'locality',index:'locality', width:32, editable:true, edittype:"textarea"},
+   		{name:'environment',index:'environment', width:32, editable:true, edittype:"textarea"},
    		{name:'tags',index:'tags', sortable:false, editable:true, edittype:"textarea"}		
    	],
 	rowNum:50,

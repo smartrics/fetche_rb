@@ -79,8 +79,11 @@ class FetcherWui < Sinatra::Base
         !r
       end
       deployments.sort! do | l, r |
-        return l[sidx] <=> r[sidx] if sord == "asc"
-        r[sidx] <=> l[sidx]
+        if sord == "asc"
+          l[sidx] <=> r[sidx]
+        else
+          r[sidx] <=> l[sidx]
+        end
       end
       grid = {"page" => page, "total" => total, "records" => records, "rows" => to_jqgrid_rows(deployments) }
       grid.to_json
